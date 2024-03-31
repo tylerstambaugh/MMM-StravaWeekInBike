@@ -5,75 +5,75 @@
  */
 Module.register("MMM-StravaWeekInBike", {
   baseUrl: "https://www.strava.com/api/v3/",
-  tokenUrl: "https://www.strava.com/oauth/token",
+  tokenUrl: "https://www.strava.com/oauth/token?",
   accessTokenData: {},
 
   // Module config defaults.
   defaults: {
-    clientSecret: "",
     clientId: "",
+    clientSecret: "",
     refreshToken: "",
-    header: "Loading Strava Stats!",
+    header: "Strava Week in Bike",
     maxWidth: "250px",
     animationSpeed: 3000, // fade in and out speed
     initialLoadDelay: 4250,
     retryDelay: 2500,
-    updateInterval: 60 * 60 * 1000
+    updateInterval: 15 * 1000
   },
 
   init: function () {
     Log.log(this.name + " is in init!");
   },
 
-  getStyles: function () {
-    return ["MMM-StravaWeekInBike.css"];
-  },
-
   getHeader: function () {
-    return this.data.header + " Foo Bar";
+    return this.config.header;
   },
 
   start: function () {
     Log.info("Starting module: " + this.name);
-    requiresVersion: "2.1.0", (this.stravaStats = []);
-  },
-
-  getDom: function () {
-    var wrapper = document.createElement("div");
-    wrapper.className = "title";
-    wrapper.innerHTML = "Strava Week in Bike";
-    return wrapper;
+    requiresVersion: "2.1.0", (this.stravaStats = []),
+    this.getStravaStats();
+    this.scheduleUpdate();
   },
 
   // this tells module when to update
   scheduleUpdate: function () {
     setInterval(() => {
-      this.getUFO();
+      this.getStravaStats();
     }, this.config.updateInterval);
-    this.getUFO(this.config.initialLoadDelay);
+    this.getStravaStats(this.config.initialLoadDelay);
     var self = this;
   },
 
   notificationReceived: function () {},
 
-  getRefreshToken: function () {
-    payload = {
-      url: this.tokenUrl,
-      clientId: this.config.clientId,
-      clientSecret: this.config.clientSecret,
-      refreshToken: this.config.refreshToken
-    };
-    this.sendSocketNotification("GET_REFRESH_TOKEN", payload);
-  },
+  // getRefreshToken: function () {
+  //   payload = {
+  //     url: this.tokenUrl,
+  //     clientId: this.config.clientId,
+  //     clientSecret: this.config.clientSecret,
+  //     refreshToken: this.config.refreshToken
+  //   };
+  //   this.sendSocketNotification("GET_REFRESH_TOKEN", payload);
+  // },
 
   getStravaStats: function () {
+    Log.info("Getting Strava stats: clientId:" + this.config.clientId + " clientSecret: " + this.config.clientSecret + " refreshToken: " + this.config.refreshToken);
     payload = {
       url: this.baseUrl,
-      accessToken: this.accessTokenData.access_token,
+      tokenUrl: this.tokenUrl,
+      clientId: this.config.clientId,
+      clientSecret: this.config.clientSecret,
+      refreshToken: this.config.refreshToken,
       startTime: Date.now() - 604800000,
       endTime: Date.now()
     };
     this.sendSocketNotification("GET_STRAVA_STATS", payload);
+  },
+
+  filterStravaStats: function (data) {
+    Log.info("Filtering Strava stats: " + data);
+    this.stravaStats = data;    
   },
 
   // this gets data from node_helper
@@ -82,15 +82,24 @@ Module.register("MMM-StravaWeekInBike", {
       this.accessTokenData(payload);
     }
     if (notification === "STRAVA_STATS_RESULT") {
-      this.stravaStats = payload;
+      filterStravaStats(payload);
     }
+  },
+
+
+  getStyles: function () {
+    return "MMM-StravaWeekInBike.css";
+  },
+
+  getTemplate() {
+    return "stravaWeekInBike.njk";
+  },
+
+  getTemplateData() {
+    return {
+      numberOfRides: 4,
+      distance: 134.7,
+      totalTime: "6 hours 34 minutes"
+    };
   }
-
-  // getTemplate () {
-  // 	return "stravaWeekInBike.njk";
-  // },
-
-  // getTemplateData () {
-  // 	return this.config;
-  // }
 });
