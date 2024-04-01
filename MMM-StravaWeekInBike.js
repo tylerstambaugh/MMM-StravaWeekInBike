@@ -18,7 +18,7 @@ Module.register("MMM-StravaWeekInBike", {
     animationSpeed: 3000, // fade in and out speed
     initialLoadDelay: 4250,
     retryDelay: 2500,
-    updateInterval: 15 * 1000
+    updateInterval:60 * 15 * 1000
   },
 
   init: function () {
@@ -32,7 +32,7 @@ Module.register("MMM-StravaWeekInBike", {
   start: function () {
     Log.info("Starting module: " + this.name);
     requiresVersion: "2.1.0", (this.stravaStats = []),
-    this.getStravaStats();
+    //this.getStravaStats();
     this.scheduleUpdate();
   },
 
@@ -65,8 +65,8 @@ Module.register("MMM-StravaWeekInBike", {
       clientId: this.config.clientId,
       clientSecret: this.config.clientSecret,
       refreshToken: this.config.refreshToken,
-      startTime: Date.now() - 604800000,
-      endTime: Date.now()
+      startTime: new Date(Date.now() - (8 * 24 * 60 * 60 * 1000)).getTime(),
+      endTime: new Date(Date.now() - (1 * 24 * 60 * 60 * 1000)).getTime(),
     };
     this.sendSocketNotification("GET_STRAVA_STATS", payload);
   },
