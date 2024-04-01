@@ -6,72 +6,98 @@ const axios = require("axios");
 const Log = require("logger");
 
 module.exports = NodeHelper.create({
-
   accessTokenData: {},
-  
+
   start: function () {
     console.log("Starting node_helper for: " + this.name);
   },
 
-
-
   getAccessToken: async function (payload) {
-    
-    try{
-      url = payload.tokenUrl + "client_id=" + payload.clientId + "&client_secret=" + payload.clientSecret + "&refresh_token=" + payload.refreshToken + "&grant_type=refresh_token";
-      await axios.post(url)
-      .then(response => {
-        // Handle the response data
-        Log.info("Access token data: " + JSON.stringify(response.data));
-        accessTokenData = response.data;
-      })
-      .catch(error => {
-        // Handle errors
-        console.error('access token Error fetching data from API:', error);
-        return null;
-      });
+    try {
+      url =
+        payload.tokenUrl +
+        "client_id=" +
+        payload.clientId +
+        "&client_secret=" +
+        payload.clientSecret +
+        "&refresh_token=" +
+        payload.refreshToken +
+        "&grant_type=refresh_token";
+      await axios
+        .post(url)
+        .then((response) => {
+          Log.info("Access token data: " + JSON.stringify(response.data));
+          accessTokenData = response.data;
+        });
     } catch (error) {
-      console.error('Access token Error fetching data from API:', error);
-      return null;
+      console.error("Access token Error fetching data from API:", error);
+      this.sendSocketNotification("ACCESS_TOKEN_ERROR", error);
     }
+  },
+
+  processData: function (data) {   
+    let totalDistance = 0;
+    let totalElevation = 0;
+    let totalMinutes = 0;
+    let numberOfRides = 0;
+    data.forEach((activity) => {
+      if(activity.type === "Ride") {
+      totalDistance += Math.floor(activity.distance * 0.000621371);
+      totalElevation += Math.floor(activity.total_elevation_gain * 3.28084);  
+      totalMinutes += Math.floor((activity.moving_time % 3600) / 60);
+      numberOfRides++;
+      }
+    });
+    return {
+      totalDistance: totalDistance,
+      totalElevation: totalElevation,
+      totalMinutes: totalMinutes,
+      numberOfRides: numberOfRides
+    };
   },
 
   getStravaStats: async function (payload) {
-    //check if access token is expired, refresh if needed:
-    try{
-      await this.getAccessToken(payload);
-      Log.info("node helper about to call for activities, access token: " + accessTokenData.access_token);
-      url = payload.url + "athlete/activities?before=" + payload.endTime + "&after=" + payload.startTime;
-
-      await axios.get(url, {
-        headers: {
-          Authorization: `Bearer ${accessTokenData.access_token}`
-        }
-      
-      })
-      .then(response => {
-        console.info("Node helper get Activities call - Data from API: ", response.data);
-        return response.data;
-      })
-      .catch(error => {
-        // Handle errors
-        console.error('node helper getStravaStats (stringified) - Error fetching data from API:', JSON.stringify(error));
-        return error;
-      });
-   
+    try {
+      await this.getAccessToken(payload);      
+      url =
+        payload.url +
+        "athlete/activities?before=" +
+        payload.before +
+        "&after=" +
+        payload.after;
+      Log.info("node helper about to call for activities, url: " + url);
+      await axios
+        .get(url, {
+          headers: {
+            Authorization: `Bearer ${accessTokenData.access_token}`
+          }
+        })
+        .then((response) => {
+          Log.info("node helper calling to filter data. Data:", response.data);
+          const processedData = this.processData(response.data);
+          return processedData;
+        })
+        .then((data) => {
+          Log.info("node helper sending data to module. Data:", data);
+          this.sendSocketNotification("STRAVA_STATS_RESULT", data);
+        });
     } catch (error) {
-      console.error('node helper getStravaStats - Error fetching data from API:', error);
+      console.error(
+        "node helper getStravaStats - Error fetching data from API:",
+        error
+      );
       return null;
     }
   },
 
-
-
   socketNotificationReceived: function (notification, payload) {
-    console.error("node helper received a socket notification: " + notification + " - Payload: " + payload);
-    if (notification === "GET_ACCESS_TOKEN") {
-      this.getAccessToken(payload);
-    } else if (notification === "GET_STRAVA_STATS") {
+    Log.info(
+      "node helper received a socket notification: " +
+        notification +
+        " - Payload: " +
+        payload
+    );
+     if (notification === "GET_STRAVA_STATS") {
       this.getStravaStats(payload);
     }
   }
