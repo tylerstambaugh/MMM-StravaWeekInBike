@@ -6,7 +6,13 @@
 Module.register("MMM-StravaWeekInBike", {
   baseUrl: "https://www.strava.com/api/v3/",
   tokenUrl: "https://www.strava.com/oauth/token?",
-  accessTokenData: {},
+  accessTokenError: {},
+  stravaStats: {
+    numberOfRides: 0,
+    totalDistance: 0,    
+    totalMinutes: 0,
+    totalElevation: 0
+  },
 
   // Module config defaults.
   defaults: {
@@ -14,11 +20,11 @@ Module.register("MMM-StravaWeekInBike", {
     clientSecret: "",
     refreshToken: "",
     header: "Strava Week in Bike",
+    numberOfDaysToQuery: 7,
     maxWidth: "250px",
-    animationSpeed: 3000, // fade in and out speed
     initialLoadDelay: 4250,
     retryDelay: 2500,
-    updateInterval:60 * 15 * 1000
+    updateInterval: 60 * 15 * 1000
   },
 
   init: function () {
@@ -31,12 +37,9 @@ Module.register("MMM-StravaWeekInBike", {
 
   start: function () {
     Log.info("Starting module: " + this.name);
-    requiresVersion: "2.1.0", (this.stravaStats = []),
-    //this.getStravaStats();
-    this.scheduleUpdate();
+    requiresVersion: "2.1.0", (this.stravaStats = []), this.scheduleUpdate();
   },
 
-  // this tells module when to update
   scheduleUpdate: function () {
     setInterval(() => {
       this.getStravaStats();
@@ -47,45 +50,42 @@ Module.register("MMM-StravaWeekInBike", {
 
   notificationReceived: function () {},
 
-  // getRefreshToken: function () {
-  //   payload = {
-  //     url: this.tokenUrl,
-  //     clientId: this.config.clientId,
-  //     clientSecret: this.config.clientSecret,
-  //     refreshToken: this.config.refreshToken
-  //   };
-  //   this.sendSocketNotification("GET_REFRESH_TOKEN", payload);
-  // },
-
   getStravaStats: function () {
-    Log.info("Getting Strava stats: clientId:" + this.config.clientId + " clientSecret: " + this.config.clientSecret + " refreshToken: " + this.config.refreshToken);
+    Log.info(
+      "Getting Strava stats: clientId:" +
+        this.config.clientId +
+        " clientSecret: " +
+        this.config.clientSecret +
+        " refreshToken: " +
+        this.config.refreshToken
+    );
     payload = {
       url: this.baseUrl,
       tokenUrl: this.tokenUrl,
       clientId: this.config.clientId,
       clientSecret: this.config.clientSecret,
       refreshToken: this.config.refreshToken,
-      startTime: new Date(Date.now() - (8 * 24 * 60 * 60 * 1000)).getTime(),
-      endTime: new Date(Date.now() - (1 * 24 * 60 * 60 * 1000)).getTime(),
+      numberOfDaysToQuery: this.config.numberOfDaysToQuery,
+      after: Math.floor(
+        new Date(Date.now() - this.config.numberOfDaysToQuery * 24 * 60 * 60 * 1000).getTime() / 1000
+      ),
+      before: Math.floor(
+        new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).getTime() / 1000
+      )
     };
     this.sendSocketNotification("GET_STRAVA_STATS", payload);
   },
 
-  filterStravaStats: function (data) {
-    Log.info("Filtering Strava stats: " + data);
-    this.stravaStats = data;    
-  },
-
   // this gets data from node_helper
   socketNotificationReceived: function (notification, payload) {
-    if (notification === "ACCESS_TOKEN_RESULT") {
+    if (notification === "ACCESS_TOKEN_ERROR") {
       this.accessTokenData(payload);
     }
     if (notification === "STRAVA_STATS_RESULT") {
-      filterStravaStats(payload);
+      this.stravaStats = payload;
+      this.updateDom();
     }
   },
-
 
   getStyles: function () {
     return "MMM-StravaWeekInBike.css";
@@ -97,9 +97,12 @@ Module.register("MMM-StravaWeekInBike", {
 
   getTemplateData() {
     return {
-      numberOfRides: 4,
-      distance: 134.7,
-      totalTime: "6 hours 34 minutes"
+      numberOfDaysToQuery: this.config.numberOfDaysToQuery,
+      numberOfRides: this.stravaStats.numberOfRides,
+      distance: this.stravaStats.totalDistance,
+      totalTime: `${Math.floor(this.stravaStats.totalMinutes / 60)} hours ${this.stravaStats.totalMinutes % 60} minutes`,
+      elevation: this.stravaStats.totalElevation,
+      accessTokenError: this.accessTokenError
     };
   }
 });
