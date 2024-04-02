@@ -1,6 +1,42 @@
-.wrapper {
+.MMM-StravaWeekInBike .wrapper {
     font-family: 'Roboto Mono', 'Lucida Console', monospace;
-    font-size: 1.5em;
+    font-size: medium;
     color: #fc4c02;
-    background-color: white;
 }
+
+.MMM-StravaWeekInBike .title {
+    font-size: small;
+    font-weight: bold;
+    color: #fc4c02;
+}
+
+.MMM-StravaWeekInBike .label {
+    font-size: small;
+    color: #ffffff;
+}
+
+.MMM-StravaWeekInBike .value {
+    font-size: small;
+    color:  #fc4c02;
+}
+
+.MMM-StravaWeekInBike .strava-icon.icon-ride {
+    background-image: url(/MMM-StravaWeekInBike/assets/images/icon-ride.svg);
+  }
+
+  .MMM-StravaWeekInBike .strava-icon {
+    height: 24px;
+    width: 24px;
+    background-size: cover;
+    vertical-align: top;
+    box-sizing: border-box;
+    background-repeat: no-repeat;
+    overflow: hidden;
+  }
+
+  .MMM-StravaWeekInBike .symbol {
+    padding-top: 0;
+    padding-left: 45px;
+    padding-right: 0;
+    padding-bottom: 25px;
+  }

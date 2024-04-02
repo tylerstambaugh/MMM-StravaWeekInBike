@@ -44,13 +44,15 @@ module.exports = NodeHelper.create({
       if(activity.type === "Ride") {
       totalDistance += Math.floor(activity.distance * 0.000621371);
       totalElevation += Math.floor(activity.total_elevation_gain * 3.28084);  
-      totalMinutes += Math.floor((activity.moving_time % 3600) / 60);
+      totalMinutes += Math.floor((activity.moving_time / 60));
       numberOfRides++;
       }
     });
     return {
       totalDistance: totalDistance,
       totalElevation: totalElevation,
+      minutes: totalMinutes % 60,
+      hours: Math.floor(totalMinutes / 60),
       totalMinutes: totalMinutes,
       numberOfRides: numberOfRides
     };

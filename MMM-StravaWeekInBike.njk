@@ -1,0 +1,41 @@
+
+{% if loading %}
+    <div class="small dimmed light">
+        {{ "LOADING" | translate | safe }}
+        <p>loading... </p>
+    </div>
+{% else %}
+ 
+<div class="wrapper">
+    {% if accessTokenError | length > 0 %}
+        <div>
+        Error getting token. </br> check the logs for more information. 
+        </div>
+    {% endif %}
+    {% if numberOfRides > 0 %}
+        <div>
+            <div class="label">
+                <span class="bright symbol strava-icon icon-ride"></span> #'s for the last <span class="value">{{numberOfDaysToQuery}}</span> days
+            </div>
+            <div class="value">
+                {{ numberOfRides}} <span class="label">rides</span>
+            </div>
+            <div class="value">
+                {{distance}} <span class="label">miles</span>
+            </div>
+            <div class="value">
+                {{elevation}} <span class="label">ft. climbed</span>
+            </div>
+            <div class="value">
+                {{ hours }} <span class="label">hours</span>
+                {{ minutes }} <span class="label">minutes ridden</span>
+            <div>
+        </div>
+    {% endif %}
+    {% if numberOfRides === 0 %}
+        <div>
+            You haven't ridden at all in the last {{numberOfDaysToQuery}} days
+        </div>
+    {% endif %}
+</div>
+{% endif %}

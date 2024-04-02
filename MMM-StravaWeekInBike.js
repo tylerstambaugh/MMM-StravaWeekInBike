@@ -11,6 +11,8 @@ Module.register("MMM-StravaWeekInBike", {
     numberOfRides: 0,
     totalDistance: 0,    
     totalMinutes: 0,
+    minutes: 0,
+    hours: 0,
     totalElevation: 0
   },
 
@@ -19,12 +21,13 @@ Module.register("MMM-StravaWeekInBike", {
     clientId: "",
     clientSecret: "",
     refreshToken: "",
-    header: "Strava Week in Bike",
+    header:  "Strava Week in Bike",
     numberOfDaysToQuery: 7,
     maxWidth: "250px",
     initialLoadDelay: 4250,
     retryDelay: 2500,
-    updateInterval: 60 * 15 * 1000
+    updateInterval: 60 * 15 * 1000,
+    loading: true,
   },
 
   init: function () {
@@ -32,7 +35,7 @@ Module.register("MMM-StravaWeekInBike", {
   },
 
   getHeader: function () {
-    return this.config.header;
+    return this.config.header || 'Default Header';    
   },
 
   start: function () {
@@ -79,20 +82,22 @@ Module.register("MMM-StravaWeekInBike", {
   // this gets data from node_helper
   socketNotificationReceived: function (notification, payload) {
     if (notification === "ACCESS_TOKEN_ERROR") {
-      this.accessTokenData(payload);
+      this.accessTokenError(payload);
     }
     if (notification === "STRAVA_STATS_RESULT") {
+      this.loading = true
       this.stravaStats = payload;
+      this.loading = false;
       this.updateDom();
     }
   },
 
   getStyles: function () {
-    return "MMM-StravaWeekInBike.css";
+    return ["font-awesome.css", "MMM-StravaWeekInBike.css"];
   },
 
   getTemplate() {
-    return "stravaWeekInBike.njk";
+    return "MMM-StravaWeekInBike.njk";
   },
 
   getTemplateData() {
@@ -101,8 +106,11 @@ Module.register("MMM-StravaWeekInBike", {
       numberOfRides: this.stravaStats.numberOfRides,
       distance: this.stravaStats.totalDistance,
       totalTime: `${Math.floor(this.stravaStats.totalMinutes / 60)} hours ${this.stravaStats.totalMinutes % 60} minutes`,
+      minutes: this.stravaStats.minutes,
+      hours: this.stravaStats.hours,
       elevation: this.stravaStats.totalElevation,
-      accessTokenError: this.accessTokenError
+      accessTokenError: this.accessTokenError,
+      loading: this.loading
     };
   }
 });
