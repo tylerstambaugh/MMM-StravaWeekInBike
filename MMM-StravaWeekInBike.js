@@ -31,7 +31,6 @@ Module.register("MMM-StravaWeekInBike", {
   },
 
   init: function () {
-    Log.log(this.name + " is in init!");
   },
 
   getHeader: function () {
@@ -53,15 +52,7 @@ Module.register("MMM-StravaWeekInBike", {
 
   notificationReceived: function () {},
 
-  getStravaStats: function () {
-    Log.info(
-      "Getting Strava stats: clientId:" +
-        this.config.clientId +
-        " clientSecret: " +
-        this.config.clientSecret +
-        " refreshToken: " +
-        this.config.refreshToken
-    );
+  getStravaStats: function () {    
     payload = {
       url: this.baseUrl,
       tokenUrl: this.tokenUrl,
