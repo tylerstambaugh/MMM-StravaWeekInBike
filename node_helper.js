@@ -1,5 +1,3 @@
-//needs to get access token from refresh token
-//needs to call and get ride stats for time period
 
 const NodeHelper = require("node_helper");
 const axios = require("axios");
@@ -25,12 +23,11 @@ module.exports = NodeHelper.create({
         "&grant_type=refresh_token";
       await axios
         .post(url)
-        .then((response) => {
-          Log.info("Access token data: " + JSON.stringify(response.data));
+        .then((response) => {          
           accessTokenData = response.data;
         });
     } catch (error) {
-      console.error("Access token Error fetching data from API:", error);
+      console.error("MMM-Strava-WeekInBike - Access token Error fetching data from API:", error);
       this.sendSocketNotification("ACCESS_TOKEN_ERROR", error);
     }
   },
@@ -67,7 +64,6 @@ module.exports = NodeHelper.create({
         payload.before +
         "&after=" +
         payload.after;
-      Log.info("node helper about to call for activities, url: " + url);
       await axios
         .get(url, {
           headers: {
@@ -75,17 +71,15 @@ module.exports = NodeHelper.create({
           }
         })
         .then((response) => {
-          Log.info("node helper calling to filter data. Data:", response.data);
           const processedData = this.processData(response.data);
           return processedData;
         })
         .then((data) => {
-          Log.info("node helper sending data to module. Data:", data);
           this.sendSocketNotification("STRAVA_STATS_RESULT", data);
         });
     } catch (error) {
       console.error(
-        "node helper getStravaStats - Error fetching data from API:",
+        "MMM-StravaWeekInBike - Node helper getStravaStats - Error fetching data from API:",
         error
       );
       return null;
