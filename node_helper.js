@@ -45,6 +45,7 @@ module.exports = NodeHelper.create({
       numberOfRides++;
       }
     });
+    Log.info("MMM-StravaWeekInBike - Node helper processData - Total distance: " + totalDistance + " miles");
     return {
       totalDistance: totalDistance,
       totalElevation: totalElevation,
@@ -64,6 +65,7 @@ module.exports = NodeHelper.create({
         payload.before +
         "&after=" +
         payload.after;
+      Log.info("MMM-StravaWeekInBike - Node helper about to call for activities, url: " + url);
       await axios
         .get(url, {
           headers: {
@@ -71,10 +73,12 @@ module.exports = NodeHelper.create({
           }
         })
         .then((response) => {
+          Log.info("MMM-StravaWeekInBike - Node helper calling to filter data. Data:", response.data);
           const processedData = this.processData(response.data);
           return processedData;
         })
         .then((data) => {
+          Log.info("MMM-StravaWeekInBike - Node helper sending data to module. Data:", data);
           this.sendSocketNotification("STRAVA_STATS_RESULT", data);
         });
     } catch (error) {
