@@ -4,7 +4,6 @@
  * By Tyler Stambaugh
  */
 
-const Log = require("logger");
 
 Module.register("MMM-StravaWeekInBike", {
   baseUrl: "https://www.strava.com/api/v3/",
@@ -70,7 +69,7 @@ Module.register("MMM-StravaWeekInBike", {
         new Date(Date.now() - this.config.numberOfDaysToQuery * 24 * 60 * 60 * 1000).getTime() / 1000
       ),
       before: Math.floor(
-        new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).getTime() / 1000
+        new Date(Date.now() - 1 * 2 * 60 * 60 * 1000).getTime() / 1000
       )
     };
     this.sendSocketNotification("GET_STRAVA_STATS", payload);
