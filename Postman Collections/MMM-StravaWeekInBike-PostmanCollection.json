@@ -125,7 +125,7 @@
 								"type": "text"
 							}
 						],
-						"url": "{{BaseURL}}/activities/10074309534"
+						"url": "{{BaseURL}}/activities/{{activityId}}"
 					},
 					"response": []
 				},
@@ -204,7 +204,7 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "3b2de435-b051-4d0e-8e1a-3340f899dc91",
+				"id": "737b4632-b9c4-4223-98fa-c42de3fe3cf3",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -215,7 +215,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "1f6df88b-297a-4578-9988-8f6cb4682f40",
+				"id": "a69c8794-b33c-4e6a-89a2-02a5a56f0261",
 				"type": "text/javascript",
 				"packages": {},
 				"exec": [
@@ -253,6 +253,11 @@
 		{
 			"key": "OAuthBaseUrl",
 			"value": "https://www.strava.com/oauth/",
+			"type": "string"
+		},
+		{
+			"key": "activityId",
+			"value": "10623752765",
 			"type": "string"
 		}
 	]
