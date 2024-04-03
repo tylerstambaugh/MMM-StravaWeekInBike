@@ -31,6 +31,8 @@ Module.register("MMM-StravaWeekInBike", {
   },
 
   init: function () {
+    Log.info("Init MMM-StravaWeekInBike");
+    this.stravaStats = {};
   },
 
   getHeader: function () {
@@ -39,7 +41,8 @@ Module.register("MMM-StravaWeekInBike", {
 
   start: function () {
     Log.info("Starting module: " + this.name);
-    requiresVersion: "2.1.0", (this.stravaStats = []), this.scheduleUpdate();
+    this.stravaStats = {};
+    this.scheduleUpdate();
   },
 
   scheduleUpdate: function () {
