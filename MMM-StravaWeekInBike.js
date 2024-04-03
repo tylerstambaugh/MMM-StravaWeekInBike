@@ -91,10 +91,12 @@ Module.register("MMM-StravaWeekInBike", {
   },
 
   getTemplate() {
+    Log.info("MMM-StravaWeekInBike - getTemplate");
     return "MMM-StravaWeekInBike.njk";
   },
 
   getTemplateData() {
+    Log.info("MMM-StravaWeekInBike - getTemplateData");
     return {
       numberOfDaysToQuery: this.config.numberOfDaysToQuery,
       numberOfRides: this.stravaStats.numberOfRides,
