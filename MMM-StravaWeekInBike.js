@@ -3,6 +3,9 @@
  *
  * By Tyler Stambaugh
  */
+
+const Log = require("logger");
+
 Module.register("MMM-StravaWeekInBike", {
   baseUrl: "https://www.strava.com/api/v3/",
   tokenUrl: "https://www.strava.com/oauth/token?",
