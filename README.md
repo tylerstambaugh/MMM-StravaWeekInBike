@@ -20,18 +20,18 @@ A simple magic mirror module for displaying the last 'X' days of riding stats.
 ## Configuration
 
 ```json
-		{
-			module: "MMM-StravaWeekInBike",
-			position: "top_right",
-			config: {
-				clientId: "[YOUR CLIENT ID]",
-				clientSecret: "[YOUR CLIENT SECRET]",
-				refreshToken: "[YOUR REFRESH TOKEN]",
-				numberOfDaysToQuery: 7, //number of days to look back for stats
-				maxWidth: "250px",
-				header: "Strava Week in Bike", //custom header if you want something different
-			}
-		},
+{
+  "module": "MMM-StravaWeekInBike",
+  "position": "top_right",
+  "config": {
+    "clientId": "[YOUR CLIENT ID]",
+    "clientSecret": "[YOUR CLIENT SECRET]",
+    "refreshToken": "[YOUR REFRESH TOKEN]",
+    "numberOfDaysToQuery": 7, //number of days to look back for stats
+    "maxWidth": "250px",
+    "header": "Strava Week in Bike" //custom header if you want something different
+  }
+}
 ```
 
 ## Updates
