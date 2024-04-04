@@ -2,6 +2,8 @@
 const NodeHelper = require("node_helper");
 const axios = require("axios");
 const Log = require("logger");
+const path = require('path');
+const fs = require('fs');
 
 module.exports = NodeHelper.create({
   accessTokenData: {},
@@ -23,8 +25,14 @@ module.exports = NodeHelper.create({
         "&grant_type=refresh_token";
       await axios
         .post(url)
-        .then((response) => {          
-          accessTokenData = response.data;
+        .then((response) => {         
+        try {
+          const filePath = path.join(__dirname, 'access_token.json');
+          fs.writeFileSync(filePath, JSON.stringify(response.data));
+        } catch (error) {
+          Log.info("MMM-StravaWeekInBike Error writing to file access_token.json:", error);
+        }
+          this.accessTokenData = response.data;
         });
     } catch (error) {
       console.error("MMM-Strava-WeekInBike - Access token Error fetching data from API:", error);
@@ -45,7 +53,6 @@ module.exports = NodeHelper.create({
       numberOfRides++;
       }
     });
-    Log.info("MMM-StravaWeekInBike - Node helper processData - Total distance: " + totalDistance + " miles");
     return {
       totalDistance: totalDistance,
       totalElevation: totalElevation,
@@ -57,28 +64,43 @@ module.exports = NodeHelper.create({
   },
 
   getStravaStats: async function (payload) {
+    const filePath = path.join(__dirname, 'access_token.json');
+    let localAccessTokenData = {};
     try {
-      await this.getAccessToken(payload);      
-      url =
+      if (fs.existsSync(filePath)) {
+          let localAccessTokenFileData = await fs.promises.readFile(filePath);
+          try {
+              localAccessTokenData = JSON.parse(localAccessTokenFileData);              
+              if (localAccessTokenData.access_token && localAccessTokenData.expires_at < Math.floor(Date.now() / 1000)) {
+                  this.accessTokenData = localAccessTokenData;
+              } else {
+                  await this.getAccessToken({ ...payload, refreshToken: localAccessTokenData.refresh_token });
+              }
+          } catch (parseError) {              
+              await this.getAccessToken(payload);
+          }
+      } else {
+          await this.getAccessToken(payload);
+      }
+      
+      let url =
         payload.url +
         "athlete/activities?before=" +
         payload.before +
         "&after=" +
         payload.after;
-      Log.info("MMM-StravaWeekInBike - Node helper about to call for activities, url: " + url);
+
       await axios
         .get(url, {
           headers: {
-            Authorization: `Bearer ${accessTokenData.access_token}`
+            Authorization: `Bearer ${this.accessTokenData.access_token}`
           }
         })
         .then((response) => {
-          Log.info("MMM-StravaWeekInBike - Node helper calling to filter data. Data:", response.data);
           const processedData = this.processData(response.data);
           return processedData;
         })
         .then((data) => {
-          Log.info("MMM-StravaWeekInBike - Node helper sending data to module. Data:", data);
           this.sendSocketNotification("STRAVA_STATS_RESULT", data);
         });
     } catch (error) {
@@ -90,13 +112,7 @@ module.exports = NodeHelper.create({
     }
   },
 
-  socketNotificationReceived: function (notification, payload) {
-    Log.info(
-      "node helper received a socket notification: " +
-        notification +
-        " - Payload: " +
-        payload
-    );
+  socketNotificationReceived: function (notification, payload) {    
      if (notification === "GET_STRAVA_STATS") {
       this.getStravaStats(payload);
     }

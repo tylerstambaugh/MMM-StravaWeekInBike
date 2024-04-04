@@ -4,7 +4,6 @@
  * By Tyler Stambaugh
  */
 
-
 Module.register("MMM-StravaWeekInBike", {
   baseUrl: "https://www.strava.com/api/v3/",
   tokenUrl: "https://www.strava.com/oauth/token?",
@@ -32,13 +31,12 @@ Module.register("MMM-StravaWeekInBike", {
     loading: true,
   },
 
-  init: function () {
-    Log.info("Init MMM-StravaWeekInBike");
+  init: function () {    
     this.stravaStats = {};
   },
 
   getHeader: function () {
-    return this.config.header || 'Default Header';    
+    return this.config.header || 'Strava Week In Bike';    
   },
 
   start: function () {
@@ -92,13 +90,11 @@ Module.register("MMM-StravaWeekInBike", {
     return ["font-awesome.css", "MMM-StravaWeekInBike.css"];
   },
 
-  getTemplate() {
-    Log.info("MMM-StravaWeekInBike - getTemplate");
+  getTemplate() {    
     return "MMM-StravaWeekInBike.njk";
   },
 
   getTemplateData() {
-    Log.info("MMM-StravaWeekInBike - getTemplateData");
     return {
       numberOfDaysToQuery: this.config.numberOfDaysToQuery,
       numberOfRides: this.stravaStats.numberOfRides,
