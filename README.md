@@ -17,6 +17,8 @@ A simple magic mirror module for displaying the last 'X' days of riding stats.
 
 -You'll need to get your clientId, clientSecret, and initial refreshToken. Follow [these instructions](https://developers.strava.com/docs/getting-started/#oauth) to get those values.
 
+-Scopes for the token should include: activity:read_all
+
 ## Configuration
 
 ```json
