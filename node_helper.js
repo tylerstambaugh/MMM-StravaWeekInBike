@@ -19,10 +19,10 @@ module.exports = NodeHelper.create({
 				.post(url)
 				.then((response) => {
 					try {
-						const filePath = path.join(__dirname, "access_token.json");
+						const filePath = path.join(__dirname, "..", "strava_access_token.json");
 						fs.writeFileSync(filePath, JSON.stringify(response.data));
 					} catch (error) {
-						this.xsendSocketNotification("LOG", `"MMM-StravaWeekInBike - Error writing to file access_token.json: ${error}`);
+						this.xsendSocketNotification("LOG", `"MMM-StravaWeekInBike - Error writing to file strava_access_token.json: ${error}`);
 					}
 					this.accessTokenData = response.data;
 				});
@@ -56,7 +56,7 @@ module.exports = NodeHelper.create({
 	},
 
 	async getStravaStats (payload) {
-		const filePath = path.join(__dirname, "access_token.json");
+		const filePath = path.join(__dirname, "..", "strava_access_token.json");
 		let localAccessTokenData = {};
 		try {
 			if (fs.existsSync(filePath)) {

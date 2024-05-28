@@ -19,6 +19,7 @@ A simple magic mirror module for displaying the last 'X' days of riding stats.
 
 -Scopes for the token should include: activity:read_all
 
+- Note: The access token and refresh tokens are kept in a file in the directory above the module. This is for the case where you are running both of my Strava MM modules, they'll share the token data between them allowing them to stay in sync and avoid "Unauthorized" errors
 ## Configuration
 
 ```json
