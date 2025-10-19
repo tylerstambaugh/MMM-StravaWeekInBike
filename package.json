@@ -1,0 +1,23 @@
+{
+  "name": "mmm-stravaweekinbike",
+  "version": "1.0.0",
+  "description": "---",
+  "main": "MMM-StravaWeekInBike.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tylerstambaugh/MMM-StravaWeekInBike.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tylerstambaugh/MMM-StravaWeekInBike/issues"
+  },
+  "homepage": "https://github.com/tylerstambaugh/MMM-StravaWeekInBike#readme",
+  "dependencies": {
+    "axios": "^1.12.2"
+  }
+}

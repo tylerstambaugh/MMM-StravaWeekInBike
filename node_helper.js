@@ -3,7 +3,6 @@ const path = require("node:path");
 const fs = require("node:fs");
 const NodeHelper = require("node_helper");
 const axios = require("axios");
-const Log = require("logger");
 
 module.exports = NodeHelper.create({
 	accessTokenData: {},
