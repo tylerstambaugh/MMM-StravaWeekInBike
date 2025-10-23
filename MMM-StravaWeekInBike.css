@@ -1,8 +1,7 @@
 .MMM-StravaWeekInBike .wrapper {
     font-family: 'Roboto Mono', 'Lucida Console', monospace;
     font-size: large;
-    color: #fc4c02;
-    width: 300px;
+    color: #fc4c02;    
 }
 
 .MMM-StravaWeekInBike .title {
