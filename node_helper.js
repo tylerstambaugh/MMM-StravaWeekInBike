@@ -11,25 +11,30 @@ module.exports = NodeHelper.create({
 		console.log(`Starting node_helper for: ${this.name}`);
 	},
 
-	async getAccessToken (payload) {
-		try {
-			let url = `${payload.tokenUrl}client_id=${payload.clientId}&client_secret=${payload.clientSecret}&refresh_token=${payload.refreshToken}&grant_type=refresh_token`;
-			await axios
-				.post(url)
-				.then((response) => {
-					try {
-						const filePath = path.join(__dirname, "..", "strava_access_token.json");
-						fs.writeFileSync(filePath, JSON.stringify(response.data));
-					} catch (error) {
-						this.xsendSocketNotification("LOG", `"MMM-StravaWeekInBike - Error writing to file strava_access_token.json: ${error}`);
-					}
-					this.accessTokenData = response.data;
-				});
-		} catch (error) {
-			this.sendSocketNotification("LOG", `"MMM-StravaWeekInBike - GetAccessToken error: ${error}`);
-			this.sendSocketNotification("ACCESS_TOKEN_ERROR", error);
-		}
-	},
+    async getAccessToken(payload) {
+        try {
+            const url = `${payload.tokenUrl}client_id=${payload.clientId}&client_secret=${payload.clientSecret}&refresh_token=${payload.refreshToken}&grant_type=refresh_token`;
+            const response = await axios.post(url);
+            const filePath = path.join(__dirname, "..", "strava_access_token.json");
+
+            try {
+                fs.writeFileSync(filePath, JSON.stringify(response.data));
+            } catch (error) {
+                this.sendSocketNotification(
+                    "LOG",
+                    `Error writing access token file: ${error}`
+                );
+            }
+
+            this.accessTokenData = response.data;
+        } catch (error) {
+            this.sendSocketNotification(
+                "LOG",
+                `Error fetching access token from API: ${error}`
+            );
+            this.sendSocketNotification("ACCESS_TOKEN_ERROR", error);
+        }
+    },
 
 	processData (data) {
 		let totalDistance = 0;
@@ -54,47 +59,65 @@ module.exports = NodeHelper.create({
 		};
 	},
 
-	async getStravaStats (payload) {
-		const filePath = path.join(__dirname, "..", "strava_access_token.json");
-		let localAccessTokenData = {};
-		try {
-			if (fs.existsSync(filePath)) {
-				let localAccessTokenFileData = await fs.promises.readFile(filePath);
-				try {
-					localAccessTokenData = JSON.parse(localAccessTokenFileData);
-					if (localAccessTokenData.access_token && localAccessTokenData.expires_at < Math.floor(Date.now() / 1000)) {
-						this.accessTokenData = localAccessTokenData;
-					} else {
-						await this.getAccessToken({ ...payload, refreshToken: localAccessTokenData.refresh_token });
-					}
-				} catch (parseError) {
-					await this.getAccessToken(payload);
-				}
-			} else {
-				await this.getAccessToken(payload);
-			}
+async getStravaStats(payload, retry = true) {
+    const filePath = path.join(__dirname, "..", "strava_access_token.json");
 
-			let url
-        = `${payload.url}athlete/activities?before=${payload.before}&after=${payload.after}`;
+    try {
+        // Load local token if exists
+        if (fs.existsSync(filePath)) {
+            const localAccessTokenFileData = await fs.promises.readFile(filePath);
+            const localAccessTokenData = JSON.parse(localAccessTokenFileData);
 
-			await axios
-				.get(url, {
-					headers: {
-						Authorization: `Bearer ${this.accessTokenData.access_token}`
-					}
-				})
-				.then((response) => {
-					const processedData = this.processData(response.data);
-					return processedData;
-				})
-				.then((data) => {
-					this.sendSocketNotification("STRAVA_STATS_RESULT", data);
-				});
-		} catch (error) {
-			this.sendSocketNotification("LOG", `"MMM-StravaWeekInBike - Node helper getStravaStats - Error fetching data from API: ${error}`);
-			return null;
-		}
-	},
+            if (
+                localAccessTokenData.access_token &&
+                localAccessTokenData.expires_at > Math.floor(Date.now() / 1000)
+            ) {
+                this.accessTokenData = localAccessTokenData;
+            } else {
+                await this.getAccessToken({
+                    ...payload,
+                    refreshToken: localAccessTokenData.refresh_token
+                });
+            }
+        } else {
+            await this.getAccessToken(payload);
+        }
+
+        // Fetch Strava activities
+        const url = `${payload.url}athlete/activities?before=${payload.before}&after=${payload.after}`;
+        const response = await axios.get(url, {
+            headers: {
+                Authorization: `Bearer ${this.accessTokenData.access_token}`
+            }
+        });
+
+        const processedData = this.processData(response.data);
+        this.sendSocketNotification("STRAVA_STATS_RESULT", processedData);
+    } catch (error) {
+        if (error.response && error.response.status === 401) {
+            if (retry) {
+                // Only retry once
+                this.sendSocketNotification(
+                    "LOG",
+                    "Access token expired, fetching new token..."
+                );
+                await this.getAccessToken(payload);
+                await this.getStravaData(payload, false); // retry = false
+            } else {
+                this.sendSocketNotification(
+                    "LOG",
+                    "Access token invalid after refresh, giving up."
+                );
+                this.sendSocketNotification("ACCESS_TOKEN_ERROR", error);
+            }
+        } else {
+            this.sendSocketNotification(
+                "LOG",
+                `Error fetching data from Strava API: ${error}`
+            );
+        }
+    }
+},
 
 	socketNotificationReceived (notification, payload) {
 		if (notification === "GET_STRAVA_STATS") {

@@ -80,6 +80,7 @@ Module.register("MMM-StravaWeekInBike", {
 		}
 		if (notification === "ACCESS_TOKEN_ERROR") {
 			this.accessTokenError = payload;
+			Log.error(`${this.name}: Access token error`, payload);
 			this.updateDom();
 		}
 		if (notification === "STRAVA_STATS_RESULT") {
